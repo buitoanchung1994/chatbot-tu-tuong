@@ -2,17 +2,23 @@ import os
 import requests
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from duckduckgo_search import DDGS
 
 app = Flask(__name__)
 CORS(app)
 
-# Cấu hình API Groq
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
-GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
-@app.route('/')
-def home():
-    return "HỆ THỐNG AI QK7 - TRỰC CHIẾN 24/7"
+def get_live_knowledge(query):
+    """AI tự động đi tìm hiểu thông tin chính thống trên web"""
+    try:
+        with DDGS() as ddgs:
+            # Ưu tiên tìm trên các trang qdnd.vn, mod.gov.vn, chinhphu.vn
+            search_query = f"{query} site:qdnd.vn OR site:chinhphu.vn OR site:mod.gov.vn"
+            results = ddgs.text(search_query, max_results=3)
+            return "\n".join([r['body'] for r in results])
+    except:
+        return "Không có dữ liệu mới nhất, sử dụng kiến thức nội bộ."
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
@@ -20,10 +26,8 @@ def chat():
         data = request.json
         user_input = data.get("user_input", "")
         
-        headers = {
-            "Authorization": f"Bearer {GROQ_API_KEY}",
-            "Content-Type": "application/json"
-        }
+        # Bước học tập thời gian thực
+        context = get_live_knowledge(user_input)
         
         payload = {
             "model": "llama-3.1-8b-instant",
@@ -31,30 +35,24 @@ def chat():
                 {
                     "role": "system", 
                     "content": (
-                        "Bạn là Chuyên gia Tư tưởng của Quân khu 7. "
-                        "NHIỆM VỤ: Chỉ trả lời bằng tiếng Việt 100%. "
-                        "PHONG CÁCH: Quân đội, nghiêm túc, đanh thép, rõ ràng. "
-                        "XƯNG HÔ: Gọi người dùng là 'đồng chí', xưng là 'tôi'. "
-                        "NỘI DUNG: Tư vấn tư tưởng, chính trị, kỷ luật và lối sống quân nhân."
+                        "Bạn là Chuyên gia Tư tưởng Quân khu 7. "
+                        "NHIỆM VỤ: Tư vấn chính trị, tư tưởng, kỷ luật sắt. "
+                        f"KIẾN THỨC CẬP NHẬT: {context}\n"
+                        "PHONG CÁCH: Đanh thép, nghiêm túc, chuẩn mực quân đội. "
+                        "XƯNG HÔ: Gọi người dùng là 'đồng chí', xưng 'tôi'. Trả lời tiếng Việt 100%."
                     )
                 },
                 {"role": "user", "content": user_input}
             ],
-            "temperature": 0.4
+            "temperature": 0.2
         }
         
-        response = requests.post(GROQ_URL, headers=headers, json=payload, timeout=30)
-        res_data = response.json()
-
-        if "choices" in res_data:
-            reply = res_data['choices'][0]['message']['content']
-            return jsonify({"response": reply})
-        
-        return jsonify({"response": "Báo cáo: Kết nối gián đoạn, mời đồng chí thử lại."})
-
+        headers = {"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}
+        response = requests.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=payload)
+        return jsonify({"response": response.json()['choices'][0]['message']['content']})
     except Exception as e:
-        return jsonify({"response": f"Lỗi hệ thống: {str(e)}"})
+        return jsonify({"response": "Báo cáo: Lỗi kết nối sở chỉ huy."})
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
+    
