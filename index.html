@@ -3,142 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HỆ THỐNG AI TƯ TƯỞNG QK7</title>
+    <title>AI CHUYÊN GIA TƯ TƯỞNG QK7</title>
     <script src="https://code.responsivevoice.org/responsivevoice.js?key=76Y2N6U7"></script>
     <style>
-        :root { --army-green: #1a2f1a; --bright-yellow: #ffeb3b; --red-flag: #f44336; }
-        body { background-color: var(--army-green); color: #e0e0e0; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; }
-        
-        header { background-color: #0e1a0e; padding: 10px; text-align: center; border-bottom: 2px solid var(--bright-yellow); }
-        .voice-controls { background: #243b24; padding: 8px; display: flex; justify-content: center; gap: 15px; font-size: 0.8rem; align-items: center; border-bottom: 1px solid #3e5a3e; }
-        select, input[type="range"] { background: #1a2f1a; color: white; border: 1px solid var(--bright-yellow); border-radius: 3px; }
-
-        #chat-window { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; background-image: radial-gradient(#2d4f2d 1px, transparent 1px); background-size: 20px 20px; }
-        .message { padding: 12px 18px; border-radius: 10px; max-width: 80%; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
-        .user { background-color: #2d4f2d; align-self: flex-end; border-right: 5px solid #4caf50; }
-        .ai { background-color: #263238; align-self: flex-start; border-left: 5px solid var(--red-flag); }
-        
-        #input-group { padding: 15px; background-color: #0e1a0e; display: flex; gap: 10px; align-items: center; }
-        #user-input { flex: 1; padding: 12px; border-radius: 5px; border: 1px solid #388e3c; background: #ffffff; color: #000; font-weight: 500; }
-        
-        /* Nút Micro */
-        .mic-btn { background-color: #d32f2f; color: white; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; transition: 0.3s; }
-        .mic-btn.recording { background-color: #ff5252; box-shadow: 0 0 15px #ff5252; animation: pulse 1.5s infinite; }
-        
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
-
-        button#send-btn { background-color: #388e3c; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        :root { --army: #1a2f1a; --gold: #ffeb3b; --red: #f44336; }
+        body { background: var(--army); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        header { background: #0e1a0e; padding: 15px; text-align: center; border-bottom: 3px solid var(--gold); }
+        #chat-window { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .msg { padding: 12px; border-radius: 8px; max-width: 85%; line-height: 1.4; }
+        .user { background: #2d4f2d; align-self: flex-end; border-right: 4px solid #4caf50; }
+        .ai { background: #263238; align-self: flex-start; border-left: 4px solid var(--red); }
+        #input-group { padding: 15px; background: #0e1a0e; display: flex; gap: 10px; align-items: center; }
+        input { flex: 1; padding: 12px; border-radius: 5px; border: none; font-size: 1rem; }
+        .btn { border: none; border-radius: 5px; cursor: pointer; font-weight: bold; height: 45px; }
+        #mic-btn { background: var(--red); width: 50px; font-size: 20px; color: white; }
+        #send-btn { background: #388e3c; color: white; padding: 0 20px; }
+        .recording { animation: pulse 1s infinite; background: #ff5252 !important; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
 
-<header>
-    <h1 style="margin:0; font-size: 1.1rem; color: var(--bright-yellow); text-transform: uppercase;">Chuyên Gia Tư Tưởng Quân Khu 7</h1>
-</header>
-
-<div class="voice-controls">
-    <label>Giọng đọc:</label>
-    <select id="voice-select">
-        <option value="Vietnamese Male">Nam bộ (Mạnh mẽ)</option>
-        <option value="Vietnamese Female">Nữ bộ (Truyền cảm)</option>
-    </select>
-    <label>Tốc độ:</label>
-    <input type="range" id="voice-rate" min="0.5" max="1.5" step="0.1" value="1">
-</div>
+<header><h1 style="margin:0; font-size: 1.2rem; color: var(--gold);">CHUYÊN GIA TƯ TƯỞNG QUÂN KHU 7</h1></header>
 
 <div id="chat-window">
-    <div class="message ai">Báo cáo đồng chí! Tôi đã sẵn sàng trực chiến. Đồng chí có thể nhấn nút Micro để ra lệnh bằng giọng nói hoặc nhập văn bản.</div>
+    <div class="msg ai">Báo cáo đồng chí! Tôi đã sẵn sàng trực chiến. Hãy nhấn Micro để nói hoặc nhập văn bản để báo cáo.</div>
 </div>
 
 <div id="input-group">
-    <button id="mic-btn" class="mic-btn" onclick="startListening()" title="Hỏi bằng giọng nói">🎤</button>
-    <input type="text" id="user-input" placeholder="Nói hoặc nhập báo cáo..." autocomplete="off">
-    <button id="send-btn" onclick="send()">GỬI</button>
+    <button id="mic-btn" class="btn" onclick="startRecognition()">🎤</button>
+    <input type="text" id="user-input" placeholder="Nói hoặc nhập báo cáo...">
+    <button id="send-btn" class="btn" onclick="sendMessage()">GỬI</button>
 </div>
 
 <script>
+    // LƯU Ý: Thay link này bằng link chính xác từ Render của đồng chí
     const API_URL = 'https://chatbot-tu-tuong.onrender.com/api/chat';
 
-    // 1. CHỨC NĂNG NHẬN DIỆN GIỌNG NÓI (Speech-to-Text)
+    // 1. CHỨC NĂNG NHẬN DIỆN GIỌNG NÓI (NGHE)
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
         const recognition = new SpeechRecognition();
         recognition.lang = 'vi-VN';
-        recognition.interimResults = false;
-
-        recognition.onstart = () => {
-            document.getElementById('mic-btn').classList.add('recording');
-            document.getElementById('user-input').placeholder = "Đang lắng nghe đồng chí...";
-        };
-
+        
+        recognition.onstart = () => document.getElementById('mic-btn').classList.add('recording');
+        recognition.onend = () => document.getElementById('mic-btn').classList.remove('recording');
+        
         recognition.onresult = (event) => {
-            const transcript = event.results[0][0].transcript;
-            document.getElementById('user-input').value = transcript;
-            send(); // Tự động gửi sau khi nói xong
+            const result = event.results[0][0].transcript;
+            document.getElementById('user-input').value = result;
+            sendMessage();
         };
 
-        recognition.onerror = () => {
-            stopMic();
-            alert("Báo cáo: Không nhận diện được giọng nói. Mời đồng chí kiểm tra lại Micro.");
-        };
-
-        recognition.onend = () => { stopMic(); };
-
-        function startListening() {
-            try { recognition.start(); } catch(e) { recognition.stop(); }
-        }
-
-        function stopMic() {
-            document.getElementById('mic-btn').classList.remove('recording');
-            document.getElementById('user-input').placeholder = "Nói hoặc nhập báo cáo...";
-        }
-    } else {
-        document.getElementById('mic-btn').style.display = 'none';
-        console.log("Trình duyệt không hỗ trợ nhận diện giọng nói.");
+        function startRecognition() { try { recognition.start(); } catch(e) { recognition.stop(); } }
     }
 
-    // 2. CHỨC NĂNG GỬI VÀ PHẢN HỒI (AI + Text-to-Speech)
-    async function send() {
+    // 2. CHỨC NĂNG GỬI VÀ PHẢN HỒI (NÓI)
+    async function sendMessage() {
         const input = document.getElementById('user-input');
-        const chatWindow = document.getElementById('chat-window');
-        const btn = document.getElementById('send-btn');
+        const window = document.getElementById('chat-window');
         const text = input.value.trim();
-
         if (!text) return;
 
-        btn.disabled = true;
-        chatWindow.innerHTML += `<div class="message user"><b>Đồng chí:</b> ${text}</div>`;
+        window.innerHTML += `<div class="msg user"><b>Đồng chí:</b> ${text}</div>`;
         input.value = '';
-        chatWindow.scrollTop = chatWindow.scrollHeight;
+        window.scrollTop = window.scrollHeight;
 
         try {
-            const res = await fetch(API_URL, {
+            const response = await fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user_input: text })
             });
-            const data = await res.json();
+            const data = await response.json();
             const reply = data.response;
 
-            chatWindow.innerHTML += `<div class="message ai"><b>Chuyên gia:</b> ${reply}</div>`;
-            chatWindow.scrollTop = chatWindow.scrollHeight;
+            window.innerHTML += `<div class="msg ai"><b>Chuyên gia:</b> ${reply}</div>`;
+            window.scrollTop = window.scrollHeight;
 
-            // Đọc câu trả lời
-            const selectedVoice = document.getElementById('voice-select').value;
-            const selectedRate = document.getElementById('voice-rate').value;
-            responsiveVoice.speak(reply, selectedVoice, {rate: selectedRate, pitch: 1});
+            // PHÁT GIỌNG NÓI TIẾNG VIỆT CHUẨN
+            responsiveVoice.speak(reply, "Vietnamese Male", {rate: 1, pitch: 1});
 
         } catch (e) {
-            chatWindow.innerHTML += `<div class="message ai" style="color:var(--red-flag)">Báo cáo: Mất kết nối sở chỉ huy!</div>`;
-        } finally {
-            btn.disabled = false;
+            window.innerHTML += `<div class="msg ai" style="color:var(--red)">Báo cáo: Mất kết nối sở chỉ huy! Hãy kiểm tra link Render.</div>`;
         }
     }
 
-    document.getElementById('user-input').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') send();
-    });
-</script>
-
-</body>
-</html>
+    document.getElementById('user-input').addEventListener('keypress', (e) => { if(e.key === 'Enter
