@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chuyên gia Tư tưởng QK7</title>
+    <style>
+        :root { --army-red: #a51c19; --army-gold: #ffcc00; --army-green: #2e4d23; }
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #e9e4d4; }
+        
+        /* Launcher Button */
+        #qk7-launcher { position: fixed; bottom: 30px; right: 30px; width: 70px; height: 70px; background: var(--army-red); border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 9999; box-shadow: 0 5px 15px rgba(0,0,0,0.3); border: 2px solid var(--army-gold); }
+        
+        /* Chat Window */
+        #qk7-window { position: fixed; bottom: 110px; right: 30px; width: 380px; max-width: 90vw; height: 550px; background: white; border-radius: 15px; display: none; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 9999; overflow: hidden; border: 1px solid #ddd; }
+        
+        .header { background: var(--army-red); color: white; padding: 15px; text-align: center; border-bottom: 3px solid var(--army-gold); }
+        .header h2 { margin: 0; font-size: 16px; text-transform: uppercase; }
+        
+        .settings { background: #3d0a09; color: #ddd; padding: 5px 15px; font-size: 12px; display: flex; align-items: center; gap: 10px; }
+        
+        #chat-content { flex: 1; padding: 15px; overflow-y: auto; background: #f4f1ea; display: flex; flex-direction: column; gap: 10px; }
+        
+        .msg { max-width: 80%; padding: 10px 15px; border-radius: 15px; font-size: 14px; line-height: 1.5; }
+        .bot { background: white; align-self: flex-start; border: 1px solid #ddd; border-bottom-left-radius: 2px; }
+        .user { background: var(--army-green); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        
+        .footer { padding: 10px; display: flex; gap: 8px; border-top: 1px solid #eee; background: white; }
+        input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 20px; outline: none; }
+        button { background: var(--army-red); color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; }
+        
+        .mic-btn { background: #555; width: 40px; border-radius: 50%; padding: 0; display: flex; align-items: center; justify-content: center; }
+        .mic-active { background: #ff0000; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div id="qk7-launcher">
+    <svg width="35" height="35" fill="white" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.54.36 2.98.97 4.29L1 23l6.71-1.97C9.02 21.64 10.46 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+</div>
+
+<div id="qk7-window">
+    <div class="header">
+        <h2>Chuyên gia Tư tưởng QK7</h2>
+    </div>
+    <div class="settings">
+        <label><input type="radio" name="voice" value="nu" checked> Nữ</label>
+        <label><input type="radio" name="voice" value="nam"> Nam</label>
+        <label style="margin-left:auto"><input type="checkbox" id="auto-read" checked> Tự động đọc</label>
+    </div>
+    <div id="chat-content">
+        <div class="msg bot">Báo cáo đồng chí! Tôi đã sẵn sàng nhận nhiệm vụ tư vấn.</div>
+    </div>
+    <div class="footer">
+        <button id="mic-btn" class="mic-btn">🎤</button>
+        <input type="text" id="user-in" placeholder="Nhập nội dung báo cáo...">
+        <button id="send-btn">GỬI</button>
+    </div>
+</div>
+
+<script>
+    const API_URL = 'https://chatbot-tu-tuong.onrender.com/api/chat';
+    const launcher = document.getElementById('qk7-launcher');
+    const windowChat = document.getElementById('qk7-window');
+    const chatContent = document.getElementById('chat-content');
+    const userInput = document.getElementById('user-in');
+    const sendBtn = document.getElementById('send-btn');
+    const micBtn = document.getElementById('mic-btn');
+
+    // Mở/Đóng cửa sổ
+    launcher.onclick = () => {
+        windowChat.style.display = windowChat.style.display === 'flex' ? 'none' : 'flex';
+    };
+
+    // Hàm đọc văn bản (TTS)
+    function speak(text) {
+        if(!document.getElementById('auto-read').checked) return;
+        window.speechSynthesis.cancel();
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = 'vi-VN';
+        const gender = document.querySelector('input[name="voice"]:checked').value;
+        msg.pitch = (gender === 'nam') ? 0.7 : 1.1;
+        window.speechSynthesis.speak(msg);
+    }
+
+    // Hàm gửi tin nhắn
+    async function handleSend() {
+        const text = userInput.value.trim();
+        if(!text) return;
+
+        addMsg(text, 'user');
+        userInput.value = '';
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({user_input: text})
+            });
+            const data = await response.json();
+            const reply = data.response || "Báo cáo: Không có phản hồi.";
+            addMsg(reply, 'bot');
+            speak(reply);
+        } catch (e) {
+            addMsg("Báo cáo: Lỗi kết nối máy chủ!", 'bot');
+        }
+    }
+
+    function addMsg(txt, type) {
+        const d = document.createElement('div');
+        d.className = `msg ${type}`;
+        d.textContent = txt;
+        chatContent.appendChild(d);
+        chatContent.scrollTop = chatContent.scrollHeight;
+    }
+
+    sendBtn.onclick = handleSend;
+    userInput.onkeypress = (e) => { if(e.key === 'Enter') handleSend(); };
+
+    // Nhận diện giọng nói (STT)
+    const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if(Speech) {
+        const rec = new Speech();
+        rec.lang = 'vi-VN';
+        micBtn.onclick = () => { rec.start(); micBtn.classList.add('mic-active'); };
+        rec.onresult = (e) => {
+            userInput.value = e.results[0][0].transcript;
+            micBtn.classList.remove('mic-active');
+            handleSend();
+        };
+        rec.onerror = () => micBtn.classList.remove('mic-active');
+    }
+</script>
+</body>
+</html>
