@@ -2,93 +2,64 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI CHUYÊN GIA QK7 TOÀN DIỆN</title>
+    <title>AI CHUYÊN GIA TƯ TƯỞNG</title>
     <script src="https://code.responsivevoice.org/responsivevoice.js?key=76Y2N6U7"></script>
     <style>
-        :root { --army: #1a2f1a; --gold: #ffeb3b; --red: #f44336; }
-        body { background: var(--army); color: white; font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; }
-        header { background: #0e1a0e; padding: 15px; text-align: center; border-bottom: 3px solid var(--gold); }
-        .controls { background: #243b24; padding: 10px; display: flex; justify-content: center; gap: 10px; font-size: 0.8rem; border-bottom: 1px solid #3e5a3e; flex-wrap: wrap; }
-        #chat-window { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
-        .msg { padding: 12px; border-radius: 8px; max-width: 80%; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
-        .user { background: #2d4f2d; align-self: flex-end; border-right: 5px solid #4caf50; }
-        .ai { background: #263238; align-self: flex-start; border-left: 5px solid var(--red); }
-        #input-group { padding: 15px; background: #0e1a0e; display: flex; gap: 10px; align-items: center; }
-        input { flex: 1; padding: 12px; border-radius: 5px; border: none; }
-        .btn { border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; height: 45px; }
-        #mic-btn { background: var(--red); width: 50px; color: white; font-size: 20px; }
-        #mic-btn.recording { animation: pulse 1s infinite; background: #ff5252; }
-        #send-btn { background: #388e3c; color: white; padding: 0 20px; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
-        audio { height: 30px; filter: invert(1); }
+        :root { --army-green: #1b5e20; --gold: #ffd600; }
+        body { background: #e8f5e9; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        header { background: var(--army-green); color: white; padding: 15px; text-align: center; border-bottom: 4px solid var(--gold); }
+        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .bubble { padding: 12px; border-radius: 10px; max-width: 85%; line-height: 1.5; }
+        .user { background: #c8e6c9; align-self: flex-end; border: 1px solid #4caf50; }
+        .ai { background: white; align-self: flex-start; border-left: 5px solid var(--army-green); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        #input-area { padding: 15px; background: white; display: flex; gap: 8px; border-top: 1px solid #ddd; }
+        input { flex: 1; padding: 12px; border: 1px solid #ccc; border-radius: 5px; }
+        button { background: var(--army-green); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+        .mic { background: #d32f2f; }
     </style>
 </head>
 <body>
+    <header><h1>⭐ CHUYÊN GIA TƯ TƯỞNG QK7</h1></header>
+    <div id="chat">
+        <div class="bubble ai">Báo cáo đồng chí! Tôi đã nạp đủ 300 tình huống tư tưởng. Đồng chí cần tư vấn về trường hợp nào?</div>
+    </div>
+    <div id="input-area">
+        <button class="mic" onclick="startMic()">🎤</button>
+        <input type="text" id="msg" placeholder="Nhập tình huống hoặc nhấn Mic...">
+        <button onclick="send()">GỬI</button>
+    </div>
 
-<header><h1 style="margin:0; font-size: 1.1rem; color: var(--gold);">CHUYÊN GIA TƯ TƯỞNG QUÂN KHU 7</h1></header>
+    <script>
+        const API_URL = 'https://chatbot-tu-tuong.onrender.com/api/chat'; // Thay link Render của đồng chí
 
-<div class="controls">
-    <label>Giọng:</label>
-    <select id="v-select"><option value="Vietnamese Male">Nam bộ</option><option value="Vietnamese Female">Nữ bộ</option></select>
-    <label>Tốc độ:</label>
-    <input type="range" id="v-rate" min="0.5" max="1.5" step="0.1" value="1" style="width:70px">
-    <label>Nhạc thư giãn:</label>
-    <audio controls loop><source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg"></audio>
-</div>
+        async function send() {
+            const input = document.getElementById('msg');
+            const chat = document.getElementById('chat');
+            const text = input.value.trim();
+            if(!text) return;
 
-<div id="chat-window">
-    <div class="msg ai">Báo cáo đồng chí! Hệ thống trực chiến đã sẵn sàng. Đồng chí có thể nhấn 🎤 để ra lệnh hoặc nhập văn bản.</div>
-</div>
+            chat.innerHTML += `<div class="bubble user"><b>Báo cáo:</b> ${text}</div>`;
+            input.value = '';
+            chat.scrollTop = chat.scrollHeight;
 
-<div id="input-group">
-    <button id="mic-btn" class="btn" onclick="startMic()">🎤</button>
-    <input type="text" id="user-input" placeholder="Nhập nội dung báo cáo...">
-    <button id="send-btn" class="btn" onclick="send()">GỬI LỆNH</button>
-</div>
-
-<script>
-    // THAY LINK RENDER CỦA ĐỒNG CHÍ VÀO ĐÂY
-    const API_URL = 'https://chatbot-tu-tuong.onrender.com/api/chat';
-
-    // 1. NHẬN DIỆN GIỌNG NÓI
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-        const rec = new SpeechRecognition();
-        rec.lang = 'vi-VN';
-        rec.onstart = () => document.getElementById('mic-btn').classList.add('recording');
-        rec.onend = () => document.getElementById('mic-btn').classList.remove('recording');
-        rec.onresult = (e) => { document.getElementById('user-input').value = e.results[0][0].transcript; send(); };
-        function startMic() { try { rec.start(); } catch(err) { rec.stop(); } }
-    }
-
-    // 2. GỬI VÀ PHÁT GIỌNG NÓI
-    async function send() {
-        const input = document.getElementById('user-input');
-        const windowChat = document.getElementById('chat-window');
-        const text = input.value.trim();
-        if(!text) return;
-
-        windowChat.innerHTML += `<div class="msg user"><b>Đồng chí:</b> ${text}</div>`;
-        input.value = '';
-        windowChat.scrollTop = windowChat.scrollHeight;
-
-        try {
             const res = await fetch(API_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_input: text })
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({user_input: text})
             });
             const data = await res.json();
-            windowChat.innerHTML += `<div class="msg ai"><b>Chuyên gia:</b> ${data.response}</div>`;
-            windowChat.scrollTop = windowChat.scrollHeight;
             
-            // PHÁT GIỌNG NÓI
-            responsiveVoice.speak(data.response, document.getElementById('v-select').value, {rate: document.getElementById('v-rate').value});
-        } catch(e) {
-            windowChat.innerHTML += `<div class="msg ai" style="color:red">Báo cáo: Mất kết nối sở chỉ huy!</div>`;
+            chat.innerHTML += `<div class="bubble ai"><b>Chuyên gia:</b> ${data.response}</div>`;
+            chat.scrollTop = chat.scrollHeight;
+            responsiveVoice.speak(data.response, "Vietnamese Male", {rate: 1});
         }
-    }
-</script>
+
+        function startMic() {
+            const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            rec.lang = 'vi-VN';
+            rec.onresult = (e) => { document.getElementById('msg').value = e.results[0][0].transcript; send(); };
+            rec.start();
+        }
+    </script>
 </body>
 </html>
