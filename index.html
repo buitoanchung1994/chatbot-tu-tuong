@@ -2,135 +2,90 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chuyên gia Tư tưởng QK7</title>
+    <title>AI CHUYÊN GIA TƯ TƯỞNG QK7</title>
     <style>
-        :root { --army-red: #a51c19; --army-gold: #ffcc00; --army-green: #2e4d23; }
-        body { margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #e9e4d4; }
-        
-        /* Launcher Button */
-        #qk7-launcher { position: fixed; bottom: 30px; right: 30px; width: 70px; height: 70px; background: var(--army-red); border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 9999; box-shadow: 0 5px 15px rgba(0,0,0,0.3); border: 2px solid var(--army-gold); }
-        
-        /* Chat Window */
-        #qk7-window { position: fixed; bottom: 110px; right: 30px; width: 380px; max-width: 90vw; height: 550px; background: white; border-radius: 15px; display: none; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 9999; overflow: hidden; border: 1px solid #ddd; }
-        
-        .header { background: var(--army-red); color: white; padding: 15px; text-align: center; border-bottom: 3px solid var(--army-gold); }
-        .header h2 { margin: 0; font-size: 16px; text-transform: uppercase; }
-        
-        .settings { background: #3d0a09; color: #ddd; padding: 5px 15px; font-size: 12px; display: flex; align-items: center; gap: 10px; }
-        
-        #chat-content { flex: 1; padding: 15px; overflow-y: auto; background: #f4f1ea; display: flex; flex-direction: column; gap: 10px; }
-        
-        .msg { max-width: 80%; padding: 10px 15px; border-radius: 15px; font-size: 14px; line-height: 1.5; }
-        .bot { background: white; align-self: flex-start; border: 1px solid #ddd; border-bottom-left-radius: 2px; }
-        .user { background: var(--army-green); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
-        
-        .footer { padding: 10px; display: flex; gap: 8px; border-top: 1px solid #eee; background: white; }
-        input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 20px; outline: none; }
-        button { background: var(--army-red); color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; }
-        
-        .mic-btn { background: #555; width: 40px; border-radius: 50%; padding: 0; display: flex; align-items: center; justify-content: center; }
-        .mic-active { background: #ff0000; animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        /* Giao diện quân đội */
+        body { background-color: #1a2f1a; color: #e0e0e0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; flex-direction: column; height: 100vh; margin: 0; }
+        #chat-container { flex: 1; overflow-y: auto; padding: 20px; border-bottom: 2px solid #2d4f2d; }
+        .message { margin-bottom: 15px; padding: 10px; border-radius: 8px; max-width: 80%; }
+        .user-msg { background-color: #2d4f2d; align-self: flex-end; margin-left: auto; border-left: 4px solid #4caf50; }
+        .ai-msg { background-color: #263238; border-left: 4px solid #f44336; }
+        #input-area { padding: 20px; display: flex; background-color: #0e1a0e; }
+        input { flex: 1; padding: 12px; border: none; border-radius: 4px; outline: none; }
+        button { padding: 12px 25px; margin-left: 10px; background-color: #388e3c; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #2e7d32; }
     </style>
 </head>
 <body>
-
-<div id="qk7-launcher">
-    <svg width="35" height="35" fill="white" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.54.36 2.98.97 4.29L1 23l6.71-1.97C9.02 21.64 10.46 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-</div>
-
-<div id="qk7-window">
-    <div class="header">
-        <h2>Chuyên gia Tư tưởng QK7</h2>
+    <h2 style="text-align:center; color: #ffeb3b;">CHUYÊN GIA TƯ TƯỞNG QUÂN KHU 7</h2>
+    <div id="chat-container"></div>
+    <div id="input-area">
+        <input type="text" id="user-input" placeholder="Báo cáo nội dung tại đây...">
+        <button onclick="sendMessage()">GỬI LỆNH</button>
     </div>
-    <div class="settings">
-        <label><input type="radio" name="voice" value="nu" checked> Nữ</label>
-        <label><input type="radio" name="voice" value="nam"> Nam</label>
-        <label style="margin-left:auto"><input type="checkbox" id="auto-read" checked> Tự động đọc</label>
-    </div>
-    <div id="chat-content">
-        <div class="msg bot">Báo cáo đồng chí! Tôi đã sẵn sàng nhận nhiệm vụ tư vấn.</div>
-    </div>
-    <div class="footer">
-        <button id="mic-btn" class="mic-btn">🎤</button>
-        <input type="text" id="user-in" placeholder="Nhập nội dung báo cáo...">
-        <button id="send-btn">GỬI</button>
-    </div>
-</div>
 
-<script>
-    const API_URL = 'https://chatbot-tu-tuong.onrender.com/api/chat';
-    const launcher = document.getElementById('qk7-launcher');
-    const windowChat = document.getElementById('qk7-window');
-    const chatContent = document.getElementById('chat-content');
-    const userInput = document.getElementById('user-in');
-    const sendBtn = document.getElementById('send-btn');
-    const micBtn = document.getElementById('mic-btn');
+    <script>
+        const API_URL = 'https://chatbot-tu-tuong.onrender.com/api/chat';
 
-    // Mở/Đóng cửa sổ
-    launcher.onclick = () => {
-        windowChat.style.display = windowChat.style.display === 'flex' ? 'none' : 'flex';
-    };
-
-    // Hàm đọc văn bản (TTS)
-    function speak(text) {
-        if(!document.getElementById('auto-read').checked) return;
-        window.speechSynthesis.cancel();
-        const msg = new SpeechSynthesisUtterance(text);
-        msg.lang = 'vi-VN';
-        const gender = document.querySelector('input[name="voice"]:checked').value;
-        msg.pitch = (gender === 'nam') ? 0.7 : 1.1;
-        window.speechSynthesis.speak(msg);
-    }
-
-    // Hàm gửi tin nhắn
-    async function handleSend() {
-        const text = userInput.value.trim();
-        if(!text) return;
-
-        addMsg(text, 'user');
-        userInput.value = '';
-
-        try {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({user_input: text})
-            });
-            const data = await response.json();
-            const reply = data.response || "Báo cáo: Không có phản hồi.";
-            addMsg(reply, 'bot');
-            speak(reply);
-        } catch (e) {
-            addMsg("Báo cáo: Lỗi kết nối máy chủ!", 'bot');
+        // HÀM ĐỌC GIỌNG VIỆT CHUẨN
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); // Tắt các âm thanh cũ
+                const msg = new SpeechSynthesisUtterance(text);
+                
+                // Lấy tất cả giọng nói có trong thiết bị
+                let voices = window.speechSynthesis.getVoices();
+                
+                // Tìm giọng Việt Nam (vi-VN)
+                let vnVoice = voices.find(v => v.lang === 'vi-VN' || v.lang.includes('vi'));
+                
+                if (vnVoice) {
+                    msg.voice = vnVoice;
+                }
+                
+                msg.lang = 'vi-VN';
+                msg.rate = 0.9;  // Tốc độ nói nghiêm túc
+                msg.pitch = 1.0; 
+                window.speechSynthesis.speak(msg);
+            }
         }
-    }
 
-    function addMsg(txt, type) {
-        const d = document.createElement('div');
-        d.className = `msg ${type}`;
-        d.textContent = txt;
-        chatContent.appendChild(d);
-        chatContent.scrollTop = chatContent.scrollHeight;
-    }
+        // Tải danh sách giọng nói ngay khi trình duyệt sẵn sàng
+        window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
 
-    sendBtn.onclick = handleSend;
-    userInput.onkeypress = (e) => { if(e.key === 'Enter') handleSend(); };
+        async function sendMessage() {
+            const input = document.getElementById('user-input');
+            const container = document.getElementById('chat-container');
+            if (!input.value) return;
 
-    // Nhận diện giọng nói (STT)
-    const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if(Speech) {
-        const rec = new Speech();
-        rec.lang = 'vi-VN';
-        micBtn.onclick = () => { rec.start(); micBtn.classList.add('mic-active'); };
-        rec.onresult = (e) => {
-            userInput.value = e.results[0][0].transcript;
-            micBtn.classList.remove('mic-active');
-            handleSend();
-        };
-        rec.onerror = () => micBtn.classList.remove('mic-active');
-    }
-</script>
+            const userText = input.value;
+            container.innerHTML += `<div class="message user-msg"><b>Đồng chí:</b> ${userText}</div>`;
+            input.value = '';
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_input: userText })
+                });
+                const data = await response.json();
+                const aiReply = data.response;
+
+                container.innerHTML += `<div class="message ai-msg"><b>Chuyên gia:</b> ${aiReply}</div>`;
+                container.scrollTop = container.scrollHeight;
+                
+                // Gọi hàm đọc
+                speak(aiReply);
+
+            } catch (error) {
+                container.innerHTML += `<div class="message ai-msg">Báo cáo: Lỗi kết nối máy chủ!</div>`;
+            }
+        }
+
+        // Nhấn Enter để gửi
+        document.getElementById('user-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') sendMessage();
+        });
+    </script>
 </body>
 </html>
