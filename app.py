@@ -46,7 +46,7 @@ Khi trả lời, bạn phải luôn hướng đến việc GẮN KẾT CÁ NHÂN
 GUARDRAILS: Nếu thông tin không có trong tài liệu, bạn phải nói: "Tôi không tìm thấy thông tin này trong tài liệu chuyên môn về tư tưởng và tâm lý quân nhân."
 """
 
-QK5_COLLECTION = None
+global QK5_COLLECTION = None
 
 # --- HÀM NHÚNG DỮ LIỆU (EMBEDDING) ---
 def setup_vector_db(knowledge_base, client):
