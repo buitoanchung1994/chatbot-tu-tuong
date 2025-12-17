@@ -12,7 +12,7 @@ GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 @app.route('/')
 def home():
-    return "HỆ THỐNG AI QK7 - ĐÃ KÍCH HOẠT CHẾ ĐỘ TIẾNG VIỆT 100%"
+    return "HỆ THỐNG AI QK7 - TRỰC CHIẾN 24/7"
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
@@ -26,22 +26,21 @@ def chat():
         }
         
         payload = {
-            "model": "llama3-8b-8192",
+            "model": "llama-3.1-8b-instant",
             "messages": [
                 {
                     "role": "system", 
                     "content": (
-                        "Bạn là Chuyên gia Tư tưởng của Quân khu 7, Quân đội Nhân dân Việt Nam. "
-                        "NHIỆM VỤ BẮT BUỘC: Chỉ được nói tiếng Việt 100%. Tuyệt đối không dùng tiếng Anh. "
-                        "PHONG CÁCH: Trình bày gãy gọn, đanh thép, nghiêm túc. "
-                        "XƯNG HÔ: Gọi người dùng là 'đồng chí' và xưng 'tôi' hoặc 'Chuyên gia'. "
-                        "NỘI DUNG: Tư vấn về tư tưởng, chính trị, lối sống và kỷ luật quân đội."
+                        "Bạn là Chuyên gia Tư tưởng của Quân khu 7. "
+                        "NHIỆM VỤ: Chỉ trả lời bằng tiếng Việt 100%. "
+                        "PHONG CÁCH: Quân đội, nghiêm túc, đanh thép, rõ ràng. "
+                        "XƯNG HÔ: Gọi người dùng là 'đồng chí', xưng là 'tôi'. "
+                        "NỘI DUNG: Tư vấn tư tưởng, chính trị, kỷ luật và lối sống quân nhân."
                     )
                 },
-                {"role": "user", "content": f"Hãy trả lời bằng tiếng Việt: {user_input}"}
+                {"role": "user", "content": user_input}
             ],
-            "temperature": 0.4, # Giảm xuống để AI trả lời nghiêm túc, không nói lan man
-            "top_p": 0.9
+            "temperature": 0.4
         }
         
         response = requests.post(GROQ_URL, headers=headers, json=payload, timeout=30)
@@ -49,13 +48,12 @@ def chat():
 
         if "choices" in res_data:
             reply = res_data['choices'][0]['message']['content']
-            # Kiểm tra nếu AI vẫn lỡ tay dùng tiếng Anh thì có thể xử lý tại đây
             return jsonify({"response": reply})
         
-        return jsonify({"response": "Báo cáo: Hệ thống đang điều chỉnh, mời đồng chí thử lại."})
+        return jsonify({"response": "Báo cáo: Kết nối gián đoạn, mời đồng chí thử lại."})
 
     except Exception as e:
-        return jsonify({"response": f"Lỗi kết nối nội bộ: {str(e)}"})
+        return jsonify({"response": f"Lỗi hệ thống: {str(e)}"})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
