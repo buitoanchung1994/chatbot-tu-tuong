@@ -1,22 +1,18 @@
 import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import google.generativeai as genai  # Chuyển sang thư viện chuẩn để ổn định hơn
+import google.generativeai as genai
 
 app = Flask(__name__)
 CORS(app)
 
-# 1. CẤU HÌNH API
+# Khởi tạo API
 API_KEY = os.environ.get("GEMINI_API_KEY")
 genai.configure(api_key=API_KEY)
 
-# 2. HƯỚNG DẪN HỆ THỐNG
-SYSTEM_PROMPT = "Bạn là Chuyên gia Tư tưởng Quân khu 7. Luôn trả lời bằng tiếng Việt, đanh thép và chuẩn mực."
-
-# Khởi tạo model bằng thư viện generativeai chuẩn
+# Cấu hình Model với đường dẫn tuyệt đối
 model = genai.GenerativeModel(
-    model_name="gemini-1.5-flash",
-    system_instruction=SYSTEM_PROMPT
+    model_name="models/gemini-1.5-flash" # Thêm models/ để fix 404
 )
 
 @app.route('/')
@@ -27,23 +23,16 @@ def home():
 def chat():
     try:
         data = request.json
-        user_message = data.get("user_input", "")
-
-        if not user_message:
-            return jsonify({"response": "Đồng chí chưa nhập câu hỏi."}), 400
-
-        # Gọi API lấy phản hồi
-        response = model.generate_content(user_message + " (Trả lời bằng tiếng Việt)")
+        user_input = data.get("user_input", "")
         
+        # Thiết lập hướng dẫn hệ thống trực tiếp trong lời gọi
+        prompt = f"Bạn là Chuyên gia Tư tưởng Quân khu 7. Trả lời đanh thép bằng tiếng Việt: {user_input}"
+        
+        response = model.generate_content(prompt)
         return jsonify({"response": response.text})
-
     except Exception as e:
-        error_msg = str(e)
-        print(f"Lỗi: {error_msg}")
-        if "429" in error_msg:
-            return jsonify({"response": "Báo cáo đồng chí, hệ thống đang quá tải. Vui lòng thử lại sau 30 giây."})
-        return jsonify({"response": f"Báo cáo đồng chí, hệ thống gặp lỗi kết nối (404). Vui lòng kiểm tra lại cấu hình model."})
+        print(f"Lỗi: {str(e)}")
+        return jsonify({"response": "Báo cáo đồng chí, hệ thống đang bận. Vui lòng thử lại sau giây lát!"})
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
