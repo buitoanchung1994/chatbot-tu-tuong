@@ -1,111 +1,63 @@
 import os
-import time
-from google import genai
-from google.genai.errors import APIError
-import chromadb
 from flask import Flask, request, jsonify
-from flask_cors import CORS 
+from flask_cors import CORS
+from google import genai
+from google.genai import types
 
-# --- CẤU HÌNH VÀ KHỞI TẠO ---
+# 1. KHỞI TẠO ỨNG DỤNG
 app = Flask(__name__)
-CORS(app) 
+CORS(app) # Quan trọng: Để nhúng được vào trang web khác
 
-# LẤY KHÓA API TỪ BIẾN MÔI TRƯỜNG (CẦN GENAI_API_KEY TRÊN RENDER)
-client = None
-if os.environ.get("GENAI_API_KEY"):
-    try:
-        client = genai.Client() 
-    except Exception as e:
-        print(f"LỖI KHỞI TẠO CLIENT GEMINI: {e}")
+# 2. ĐỊNH HƯỚNG TƯ TƯỞNG QUÂN KHU 7 (SYSTEM PROMPT)
+SYSTEM_INSTRUCTION = """
+Bạn là một Chuyên gia Tư tưởng cao cấp thuộc Quân khu 7, Quân đội Nhân dân Việt Nam. 
+Nhiệm vụ: Tư vấn, giải đáp và định hướng tư tưởng cho cán bộ, chiến sĩ và nhân dân trên địa bàn Quân khu 7.
 
-# --- DỮ LIỆU TỪ TRANG WEB QK5 (CẦN THAY THẾ) ---
-QK5_KNOWLEDGE_BASE = [
-    # **HÃY THAY THẾ TOÀN BỘ NỘI DUNG NÀY BẰNG DỮ LIỆU THỰC TẾ CỦA BẠN**
-    "Tư tưởng Hồ Chí Minh về độc lập dân tộc gắn liền với chủ nghĩa xã hội là kim chỉ nam.",
-    "Bốn phẩm chất cơ bản của quân nhân: Trung thành với Đảng, tận tụy với nhân dân, sẵn sàng chiến đấu, kỷ luật nghiêm minh.",
-    "Vai trò của Cán bộ Chính trị: Chủ trì xây dựng nghị quyết, trực tiếp đối thoại, định hướng tư tưởng.",
-    "Khi có áp lực công việc, cá nhân phải phân loại nhiệm vụ, tự phê bình và chủ động báo cáo với cấp ủy/chỉ huy để được phân công lại.",
-    "Tổ chức phải tạo điều kiện cho chiến sĩ tham gia hoạt động văn hóa, thể thao để giải tỏa áp lực và củng cố đoàn kết."
-]
+Kiến thức cốt lõi:
+- Am hiểu sâu sắc Chủ nghĩa Mác-Lênin, Tư tưởng Hồ Chí Minh, Đường lối quân sự của Đảng.
+- Nắm vững truyền thống "Miền Đông gian lao mà anh dũng" của QK7.
+- Địa bàn: TP. Hồ Chí Minh, Bà Rịa – Vũng Tàu, Bình Dương, Bình Phước, Bình Thuận, Đồng Nai, Lâm Đồng, Long An, Tây Ninh.
 
-# --- SYSTEM PROMPT (TÍNH CÁCH CHATBOT) ---
-SYSTEM_PROMPT = """
-Bạn là "Chuyên gia Tư vấn Tư tưởng và Tâm lý QK5". Bạn được đào tạo chuyên sâu về Công tác Đảng, Công tác Chính trị (CTĐ, CTCT) trong Quân đội và Tư vấn Tâm lý quân nhân (quản lý căng thẳng, áp lực).
-
-Kiến thức của bạn được giới hạn trong [CONTEXT/DOCUMENTATION PROVIDED BELOW], nguồn gốc từ trang web chuyengiatutuongqk5.created.app.
-
-Giọng điệu phải CHUYÊN NGHIỆP, TRÂN TRỌNG, THÂN TÌNH và MANG TÍNH ĐỘNG VIÊN MẠNH MẼ.
-
-Khi trả lời, bạn phải luôn hướng đến việc GẮN KẾT CÁ NHÂN VỚI TẬP THỂ:
-1. Ghi nhận và đồng cảm với trạng thái tâm lý của người hỏi.
-2. Giải pháp gồm hai phần:
-    a) Trách nhiệm Cá nhân (Tự điều chỉnh): Nêu biện pháp mà quân nhân/cán bộ cần chủ động thực hiện (tự phê bình, rèn luyện, phương pháp làm việc khoa học).
-    b) Vai trò Hỗ trợ của Tổ chức: Nêu rõ trách nhiệm của Cán bộ Chính trị/Chỉ huy/Đồng đội trong việc hỗ trợ, giám sát, và giải quyết vấn đề.
-3. Tái khẳng định niềm tin vào bản lĩnh và sự hỗ trợ của tổ chức.
-
-GUARDRAILS: Nếu thông tin không có trong tài liệu, bạn phải nói: "Tôi không tìm thấy thông tin này trong tài liệu chuyên môn về tư tưởng và tâm lý quân nhân."
+Phong thái: Chuẩn mực, đanh thép, gần gũi.
+Xưng hô: "Tôi" hoặc "Chuyên gia" và gọi người dùng là "Đồng chí" hoặc "Bạn".
+Khẩu hiệu: "Chủ động, sáng tạo, tự lực, tự cường, đoàn kết, quyết thắng."
 """
 
-global QK5_COLLECTION = None
+# 3. KẾT NỐI GEMINI API
+# Bạn cần thêm GEMINI_API_KEY vào phần Environment Variables trên Render
+API_KEY = os.environ.get("GEMINI_API_KEY")
+client = genai.Client(api_key=API_KEY)
 
-# --- HÀM NHÚNG DỮ LIỆU (EMBEDDING) ---
-def setup_vector_db(knowledge_base, client):
-    if not client: return None
-    db_client = chromadb.Client()
-    collection = db_client.get_or_create_collection("qk5_tu_tuong_" + str(int(time.time()))) 
-    embeddings = []; ids = []
-    for i, doc in enumerate(knowledge_base):
-        try:
-            response = client.models.embed_content(
-                model="text-embedding-004", content=doc, task_type="RETRIEVAL_DOCUMENT"
-            )
-            embeddings.append(response['embedding']); ids.append(f"doc_{i}")
-        except APIError as e:
-            continue
-    if embeddings:
-        collection.add(embeddings=embeddings, documents=knowledge_base, ids=ids)
-    return collection
+@app.route('/')
+def home():
+    return "API Chuyên gia Tư tưởng QK7 đang hoạt động!"
 
-# --- HÀM XỬ LÝ CHATBOT RAG CHÍNH ---
-def get_rag_answer(question, collection, client):
-    if not collection or not client: return "Hệ thống AI chưa được khởi tạo hoặc Khóa API không hợp lệ."
-    try:
-        query_embedding_response = client.models.embed_content(
-            model="text-embedding-004", content=question, task_type="RETRIEVAL_QUERY"
-        )
-        query_embedding = query_embedding_response['embedding']
-        results = collection.query(query_embeddings=[query_embedding], n_results=3)
-        context = "\n---\n".join(results['documents'][0])
-        contents = [{"role": "user", "parts": [{"text": f"[CONTEXT/DOCUMENTATION PROVIDED BELOW]:\n{context}\n---\n[USER_QUESTION]:\n{question}"}]}]
-        
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=contents,
-            config=genai.types.GenerateContentConfig(system_instruction=SYSTEM_PROMPT)
-        )
-        return response.text
-    except APIError as e:
-        return f"Lỗi gọi AI: {e}"
-    except Exception as e:
-        return f"Lỗi xử lý hệ thống: {e}"
-
-# --- ĐỊNH NGHĨA API ROUTE ---
 @app.route('/api/chat', methods=['POST'])
-def chat_endpoint():
-    data = request.json
-    question = data.get('question')
+def chat():
+    try:
+        data = request.json
+        user_message = data.get("user_input", "")
 
-    if not question:
-        return jsonify({"error": "Thiếu tham số 'question'"}), 400
+        if not user_message:
+            return jsonify({"response": "Đồng chí vui lòng nhập câu hỏi."}), 400
 
-    answer = get_rag_answer(question, QK5_COLLECTION, client)
-    return jsonify({"answer": answer})
+        # Gọi Gemini 2.0 Flash - Tốc độ cực nhanh
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            config=types.GenerateContentConfig(
+                system_instruction=SYSTEM_INSTRUCTION,
+                temperature=0.7,
+            ),
+            contents=[user_message]
+        )
 
-# --- KHỞI TẠO KHI SERVER BẮT ĐẦU ---
-with app.app_context():
-    global QK5_COLLECTION
-    QK5_COLLECTION = setup_vector_db(QK5_KNOWLEDGE_BASE, client)
+        return jsonify({"response": response.text})
 
-if __name__ == '__main__':
-    # Chỉ dùng khi chạy local để kiểm tra
-    app.run(host='0.0.0.0', port=5000)
+    except Exception as e:
+        print(f"Lỗi: {e}")
+        return jsonify({"response": "Hệ thống đang bận, đồng chí vui lòng thử lại sau."}), 500
+
+# 4. CHẠY SERVER
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
